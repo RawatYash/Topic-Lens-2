@@ -65,10 +65,19 @@ export interface ExtendedAnalysisData {
  */
 export interface SessionData {
   /** Unique identifier for the session */
-  id: string
+  id: number
+  
+  /** User ID */
+  user_id: string
   
   /** User-provided name for the session */
   name: string
+  
+  /** Document name if uploaded */
+  document_name: string | null
+  
+  /** Document type if uploaded */
+  document_type: string | null
   
   /** Timestamp when the session was created */
   createdAt: Date
@@ -114,7 +123,7 @@ export interface SessionAPI {
    * - Include all session state (file info, columns, results)
    * - Handle file content retrieval strategy
    */
-  getSessionData(id: string): Promise<SessionData>
+  getSessionData(id: number): Promise<SessionData>
   
   /**
    * POST /api/sessions
@@ -134,7 +143,7 @@ export interface SessionAPI {
    * - Clean up any stored files
    * - Remove all associated analysis results
    */
-  deleteSession(id: string): Promise<void>
+  deleteSession(id: number): Promise<void>
   
   /**
    * PUT /api/sessions/:id/data
@@ -143,7 +152,6 @@ export interface SessionAPI {
    * Implementation Requirements:
    * - Validate current step transition
    * - Handle file updates if provided
-
    */
-  updateSessionData(id: string, data: Partial<SessionData>): Promise<SessionData>
+  updateSessionData(id: number, data: Partial<SessionData>): Promise<SessionData>
 } 

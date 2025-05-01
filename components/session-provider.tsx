@@ -30,7 +30,7 @@ function PageWrapper({
 
 export function SessionProvider({ children }: { children: React.ReactNode }) {
   const [sessions, setSessions] = useState<Session[]>([])
-  const [activeSessionId, setActiveSessionId] = useState<string>("")
+  const [activeSessionId, setActiveSessionId] = useState<number>(0)
   const [showInitialDialog, setShowInitialDialog] = useState(false)
 
   // Load sessions on mount
@@ -64,12 +64,12 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
-  const handleDeleteSession = async (id: string) => {
+  const handleDeleteSession = async (id: number) => {
     try {
       await sessionService.deleteSession(id)
       setSessions(prev => prev.filter(s => s.id !== id))
       if (activeSessionId === id) {
-        setActiveSessionId("")
+        setActiveSessionId(0)
       }
     } catch (error) {
       console.error('Failed to delete session:', error)

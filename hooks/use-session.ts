@@ -2,15 +2,15 @@ import { createContext, useContext } from 'react'
 import type { Session } from '@/types/session'
 
 export interface SessionContextType {
-  activeSessionId: string
+  activeSessionId: number
   sessions: Session[]
   onCreateSession: (name: string) => void
-  onSelectSession: (id: string) => void
-  onDeleteSession: (id: string) => void
+  onSelectSession: (id: number) => void
+  onDeleteSession: (id: number) => void
 }
 
 export const SessionContext = createContext<SessionContextType>({
-  activeSessionId: "",
+  activeSessionId: 0,
   sessions: [],
   onCreateSession: () => {},
   onSelectSession: () => {},
