@@ -62,6 +62,7 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
       console.error('Failed to create session:', error)
       // TODO: Show error toast/notification
     }
+
   }
 
   const handleDeleteSession = async (id: number) => {

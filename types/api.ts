@@ -105,6 +105,14 @@ export interface SessionData {
   results?: ProcessClusterResponse
 }
 
+/**
+ * Response from file upload endpoint
+ */
+export interface FileUploadResponse {
+  /** List of column names from the uploaded file */
+  columns: string[]
+}
+
 export interface SessionAPI {
   /**
    * GET /api/sessions

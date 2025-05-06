@@ -6,7 +6,7 @@ import { useState, useRef } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { FileSpreadsheet, Upload } from "lucide-react"
-import * as XLSX from "xlsx"
+import type { FileUploadResponse } from "@/types/api"
 
 interface UploadExcelProps {
   onUpload: (file: File, headers: string[]) => void
@@ -16,6 +16,7 @@ export default function UploadExcel({ onUpload }: UploadExcelProps) {
   const [isDragging, setIsDragging] = useState(false)
   const [fileName, setFileName] = useState("")
   const [error, setError] = useState("")
+  const [isUploading, setIsUploading] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const handleDragOver = (e: React.DragEvent) => {
@@ -30,6 +31,7 @@ export default function UploadExcel({ onUpload }: UploadExcelProps) {
   const processExcelFile = async (file: File) => {
     try {
       setError("")
+      setIsUploading(true)
 
       // Check if it's an Excel file
       if (!file.name.endsWith(".xlsx") && !file.name.endsWith(".xls")) {
@@ -37,30 +39,28 @@ export default function UploadExcel({ onUpload }: UploadExcelProps) {
         return
       }
 
-      // Read the Excel file to get headers
-      const data = await file.arrayBuffer()
-      const workbook = XLSX.read(data)
-      const worksheet = workbook.Sheets[workbook.SheetNames[0]]
-      const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 })
+      // Send file to backend
+      const formData = new FormData()
+      formData.append("file", file)
 
-      if (jsonData.length === 0) {
-        setError("The Excel file is empty")
-        return
+      const response = await fetch("/api/upload-file", {
+        method: "POST",
+        body: formData
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || "Failed to upload file")
       }
 
-      // Extract headers (first row)
-      const headers = jsonData[0] as string[]
-
-      if (headers.length === 0) {
-        setError("No columns found in the Excel file")
-        return
-      }
-
+      const data = await response.json() as FileUploadResponse
       setFileName(file.name)
-      onUpload(file, headers)
+      onUpload(file, data.columns)
     } catch (err) {
-      console.error("Error processing Excel file:", err)
-      setError("Failed to process the Excel file. Please try again.")
+      console.error("Error uploading file:", err)
+      setError(err instanceof Error ? err.message : "Failed to upload the file. Please try again.")
+    } finally {
+      setIsUploading(false)
     }
   }
 
@@ -106,9 +106,14 @@ export default function UploadExcel({ onUpload }: UploadExcelProps) {
             <p className="text-sm text-muted-foreground">Drag and drop your Excel file here, or click to browse</p>
           </div>
           <Input ref={fileInputRef} type="file" accept=".xlsx,.xls" className="hidden" onChange={handleFileChange} />
-          <Button onClick={handleButtonClick} variant="outline" className="gap-2">
+          <Button 
+            onClick={handleButtonClick} 
+            variant="outline" 
+            className="gap-2"
+            disabled={isUploading}
+          >
             <Upload className="h-4 w-4" />
-            Browse Files
+            {isUploading ? "Uploading..." : "Browse Files"}
           </Button>
         </div>
       </div>
@@ -119,7 +124,12 @@ export default function UploadExcel({ onUpload }: UploadExcelProps) {
             <FileSpreadsheet className="h-5 w-5 text-primary" />
             <span className="text-sm font-medium">{fileName}</span>
           </div>
-          <Button variant="ghost" size="sm" onClick={() => setFileName("")}>
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            onClick={() => setFileName("")}
+            disabled={isUploading}
+          >
             Change
           </Button>
         </div>

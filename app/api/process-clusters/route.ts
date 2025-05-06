@@ -5,14 +5,22 @@ import { NextResponse } from "next/server"
 
 export async function POST(request: Request) {
   try {
-    // In a real implementation, this would:
-    // 1. Parse the FormData from the request
-    // 2. Extract the Excel file and configuration
-    // 3. Process the data using ML algorithms
-    // 4. Return the results
+    const body = await request.json()
+    const { clusterCount } = body
 
-    // For now, we'll return placeholder data to allow the frontend to function
-    // This simulates what the backend would return after processing
+    if (!clusterCount || typeof clusterCount !== 'number') {
+      return NextResponse.json(
+        { error: "Invalid request: clusterCount is required and must be a number" },
+        { status: 400 }
+      )
+    }
+
+    // Here you would:
+    // 1. Get the previously stored selected columns from your backend storage
+    // 2. Process the data using the selected columns and cluster count
+    // 3. Return the clustering results
+
+    // For now, we'll return placeholder data
     return NextResponse.json({
       id: "analysis-" + Date.now(),
       topics: [
@@ -36,6 +44,9 @@ export async function POST(request: Request) {
     })
   } catch (error) {
     console.error("Error processing clusters:", error)
-    return NextResponse.json({ error: "Failed to process data" }, { status: 500 })
+    return NextResponse.json(
+      { error: "Failed to process data" },
+      { status: 500 }
+    )
   }
 }

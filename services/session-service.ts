@@ -69,17 +69,26 @@ export const sessionService: SessionAPI = {
   },
 
   async createSession(name: string) {
-    // TODO: Replace with actual API call
-    // POST /api/sessions
-    // Currently using mock data
-    return {
-      id: Date.now(),
-      user_id: "k104630", // Mock user ID
-      name,
-      document_name: null,
-      document_type: null,
-      createdAt: new Date(),
-      currentStep: 1
+    try {
+      // Make API call with just the name
+      const response = await fetch('/api/sessions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ name })
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to create session');
+      }
+
+      // The backend will return the complete session data including the ID generated
+      const sessionData = await response.json();
+      return sessionData;
+    } catch (error) {
+      console.error('Failed to create session:', error);
+      throw error;
     }
   },
 

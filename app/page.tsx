@@ -44,7 +44,7 @@ export default function Home() {
   }, [activeSessionId])
 
   // Handle session switching
-  const handleSessionSwitch = async (sessionId: string) => {
+  const handleSessionSwitch = async (sessionId: number) => {
     setIsSessionSwitching(true)
     // Here we would normally fetch session data from backend
     // For now, we'll simulate a loading delay
@@ -59,9 +59,28 @@ export default function Home() {
     setCurrentStep(2)
   }
 
-  const handleColumnSelection = (selected: string[]) => {
-    setSelectedColumns(selected)
-    setCurrentStep(3)
+  const handleColumnSelection = async (selected: string[]) => {
+    try {
+      // Send selected columns to backend
+      const response = await fetch("/api/columns", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ columns: selected }),
+      })
+
+      if (!response.ok) {
+        throw new Error("Failed to save selected columns")
+      }
+
+      // If successful, update state and move to next step
+      setSelectedColumns(selected)
+      setCurrentStep(3)
+    } catch (error) {
+      console.error("Error saving selected columns:", error)
+      setError(error instanceof Error ? error.message : "Failed to save selected columns")
+    }
   }
 
   const handleClusterConfiguration = async (count: number) => {
@@ -71,40 +90,13 @@ export default function Home() {
     setLoadingProgress(0)
 
     try {
-      // Simulate progress updates
-      const progressInterval = setInterval(() => {
-        setLoadingProgress((prev) => {
-          const newProgress = prev + Math.random() * 15
-          return newProgress >= 100 ? 100 : newProgress
-        })
-      }, 500)
-
-      // Simulate API delay
-      await new Promise((resolve) => setTimeout(resolve, 3500))
-
-      clearInterval(progressInterval)
-      setLoadingProgress(100)
-
-      // Use mock data
-      setResults(mockClusterResponse)
-
-      // Small delay before showing results to ensure progress bar reaches 100%
-      setTimeout(() => {
-        setCurrentStep(4)
-      }, 500)
-
-      /* 
-      // This would be the actual API call in production
-      const formData = new FormData()
-      if (file) {
-        formData.append("file", file)
-      }
-      formData.append("columns", JSON.stringify(selectedColumns))
-      formData.append("clusterCount", count.toString())
-      
+      // Send only cluster count to backend
       const response = await fetch("/api/process-clusters", {
         method: "POST",
-        body: formData,
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ clusterCount: count }),
       })
 
       if (!response.ok) {
@@ -115,7 +107,6 @@ export default function Home() {
       const data = await response.json()
       setResults(data)
       setCurrentStep(4)
-      */
     } catch (error) {
       console.error("Error processing data:", error)
       setError(error instanceof Error ? error.message : "An unknown error occurred")
